@@ -21,7 +21,8 @@ const handleRequest = async (_: Request, params: unknown) => {
 
   const response = await fetch(`https://scrapbox.io/api/feed/${projectId}`, {
     headers: {
-      "user-agent": "scrapbox-genkyu",
+      "user-agent":
+        "scrapbox-genkyu (+https://github.com/ci7lus/homare/blob/master/src/scrapbox-genkyu.ts)",
     },
   })
 
@@ -68,6 +69,9 @@ const handleRequest = async (_: Request, params: unknown) => {
 }
 
 serve({
-  "/": () => new Response("scrapbox-genkyu: /:projectId/:keyword"),
+  "/": () =>
+    new Response(
+      "scrapbox-genkyu: /:projectId/:keyword https://github.com/ci7lus/homare/blob/master/src/scrapbox-genkyu.ts"
+    ),
   "/:projectId/:keyword": handleRequest,
 })
