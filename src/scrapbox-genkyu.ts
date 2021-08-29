@@ -3,6 +3,9 @@ import * as $ from "https://deno.land/x/zod@v3.8.0/mod.ts"
 import { parseFeed } from "https://deno.land/x/rss@0.5.3/mod.ts"
 import { Feed } from "https://jspm.dev/feed"
 
+const SOURCE_URL =
+  "https://github.com/ci7lus/homare/blob/master/src/scrapbox-genkyu.ts"
+
 const handleRequest = async (_: Request, params: unknown) => {
   const parsedParams = await $.object({
     projectId: $.string().min(1),
@@ -21,8 +24,7 @@ const handleRequest = async (_: Request, params: unknown) => {
 
   const response = await fetch(`https://scrapbox.io/api/feed/${projectId}`, {
     headers: {
-      "user-agent":
-        "scrapbox-genkyu (+https://github.com/ci7lus/homare/blob/master/src/scrapbox-genkyu.ts)",
+      "user-agent": `scrapbox-genkyu (+${SOURCE_URL})`,
     },
   })
 
@@ -41,7 +43,7 @@ const handleRequest = async (_: Request, params: unknown) => {
     description: parsed.description,
     link: parsed.links[0],
     updated: parsed.updateDate,
-    generator: "scrapbox-genkyu",
+    generator: `scrapbox-genkyu (+${SOURCE_URL})`,
   })
 
   parsed.entries
@@ -70,8 +72,6 @@ const handleRequest = async (_: Request, params: unknown) => {
 
 serve({
   "/": () =>
-    new Response(
-      "scrapbox-genkyu: /:projectId/:keyword https://github.com/ci7lus/homare/blob/master/src/scrapbox-genkyu.ts"
-    ),
+    new Response(`scrapbox-genkyu: /:projectId/:keyword (+${SOURCE_URL})`),
   "/:projectId/:keyword": handleRequest,
 })
