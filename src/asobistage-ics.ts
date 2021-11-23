@@ -3,6 +3,7 @@ import ics from "https://cdn.skypack.dev/ics"
 
 const SOURCE_URL =
   "https://github.com/ci7lus/homare/blob/master/src/asobistage-ics.ts"
+const MAX_AGE = 60 * 60 * 12
 
 const dateToArr = (date: Date) => [
   date.getFullYear(),
@@ -88,6 +89,7 @@ const handleRequest = async () => {
   return new Response(value, {
     headers: {
       "content-type": "text/calendar; charset=utf-8",
+      "cache-control": `max-age=${MAX_AGE}`,
     },
   })
 }

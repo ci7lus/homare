@@ -5,6 +5,7 @@ import { Feed } from "https://jspm.dev/feed@4.2.2"
 
 const SOURCE_URL =
   "https://github.com/ci7lus/homare/blob/master/src/scrapbox-genkyu.ts"
+const MAX_AGE = 60 * 60
 
 const handleRequest = async (_: Request, params: unknown) => {
   const parsedParams = await $.object({
@@ -66,6 +67,7 @@ const handleRequest = async (_: Request, params: unknown) => {
   return new Response(feed.rss2(), {
     headers: {
       "content-type": "application/rss+xml; charset=utf-8",
+      "cache-control": `max-age=${MAX_AGE}`,
     },
   })
 }
