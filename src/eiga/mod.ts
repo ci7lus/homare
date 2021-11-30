@@ -4,6 +4,7 @@ import { EndScreeningPredict, Index } from "./docs.tsx";
 import { endScreeningPredict } from "./end-screening-predict.ts";
 import { encode } from "https://deno.land/std@0.116.0/encoding/base64.ts";
 
+// deno-lint-ignore no-explicit-any
 const handleRequest = async (_: Request, params: any) => {
   const { movieId, areaId } = params;
   if (typeof movieId !== "string" || typeof areaId !== "string") {
