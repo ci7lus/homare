@@ -2,11 +2,14 @@ import {
   DOMParser,
   Element,
   HTMLDocument,
-} from "https://deno.land/x/deno_dom@v0.1.19-alpha/deno-dom-wasm.ts";
+  initParser,
+} from "https://deno.land/x/deno_dom@v0.1.19-alpha/deno-dom-wasm-noinit.ts";
 import { datetime } from "https://deno.land/x/ptera@v1.0.0-beta/mod.ts";
 
 const USER_AGENT =
   "eiga-deno-deploy/end-screening-predict (+https://eiga.deno.dev)";
+
+await initParser();
 
 const querySelectorAll = <T = Element>(
   element: HTMLDocument | Element,
