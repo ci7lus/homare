@@ -62,17 +62,14 @@ export const EndScreeningPredict = () => (
           <a href="https://moviewalker.jp/">MOVIE WALKER PRESS</a>
           で該当の映画IDと、エリアIDを取得してください。
           <br />
-          映画のURLが<code>https://moviewalker.jp/mv73539/schedule/</code>
-          の場合、
-          <code>73539</code>が映画IDです。
-          <br />
           「上映館を探す」でのエリアのURLが
           <code>https://moviewalker.jp/mv72218/schedule/P_toyama/</code>の場合、
+          <code>72218</code>が映画ID、
           <code>toyama</code>がエリアIDです。
           <br />
           この場合、icsのURLは
           <code>
-            https://eiga.ci7lus.repl.co/end-screening-predict/73539/toyama.ics
+            https://eiga.ci7lus.repl.co/end-screening-predict/72218/toyama.ics
           </code>
           です。Googleカレンダーなどに登録して利用してください。
         </p>
