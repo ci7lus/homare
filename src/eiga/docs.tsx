@@ -72,7 +72,7 @@ export const EndScreeningPredict = () => (
           <br />
           この場合、icsのURLは
           <code>
-            https://eiga.deno.dev/end-screening-predict/73539/toyama.ics
+            https://eiga.ci7lus.repl.co/end-screening-predict/73539/toyama.ics
           </code>
           です。Googleカレンダーなどに登録して利用してください。
         </p>

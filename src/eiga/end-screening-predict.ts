@@ -83,6 +83,11 @@ export const endScreeningPredict = async (movieId: string, area: string) => {
       area.theaters.map((theater) => ({ ...theater, areaName: area.name }))
     )
     .flat();
+  const meta = {
+    name,
+    url,
+    areaName: areas.areas.map((area) => area.name).join(", "),
+  };
   const lastDays = await Promise.all(
     theaters.map(async (theater) => {
       const theaterHtml = await fetch(
@@ -106,17 +111,16 @@ export const endScreeningPredict = async (movieId: string, area: string) => {
   const minTheaterDay = lastDays.reduce((a, b) => (a!.isBefore(b) ? a : b));
   const prefLastDay = queryLastDay(pref);
   if (!prefLastDay) {
-    return;
+    return meta;
   }
   const prefLastDayDt = monthAndDateToDT(prefLastDay.month!, prefLastDay.day!);
   if (prefLastDayDt.isBefore(minTheaterDay)) {
     return {
-      name,
-      url,
+      ...meta,
       predicted: prefLastDayDt,
-      areaName: areas.areas.map((area) => area.name).join(", "),
     };
   }
+  return meta;
 };
 
 export interface Areas {
