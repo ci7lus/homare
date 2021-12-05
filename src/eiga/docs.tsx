@@ -104,7 +104,7 @@ export const EndCalendarTheater = () => (
           <br />
           映画館のURLが
           <code>https://moviewalker.jp/th416/</code>の場合、
-          <code>416</code>が映画館ID
+          <code>416</code>が映画館IDです。
           <br />
           この場合、icsのURLは
           <code>https://eiga.ci7lus.repl.co/end-calendar-theater/416.ics</code>
