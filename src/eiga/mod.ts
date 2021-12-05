@@ -1,12 +1,13 @@
 import { jsx, serve } from "https://deno.land/x/sift@0.3.6/mod.ts";
 import ics from "https://cdn.skypack.dev/ics@2.31.0";
-import { EndScreeningPredict, Index } from "./docs.tsx";
+import { EndCalendarTheater, EndScreeningPredict, Index } from "./docs.tsx";
 import { endScreeningPredict } from "./end-screening-predict.ts";
 import { encode } from "https://deno.land/std@0.116.0/encoding/base64.ts";
 import { DateTime } from "https://deno.land/x/ptera@v1.0.0-beta/mod.ts";
+import { getEndCalendarTheater } from "./end-calendar-theater.ts";
 
 // deno-lint-ignore no-explicit-any
-const handleRequest = async (_: Request, params: any) => {
+const handleRequestEndScreeningPredict = async (_: Request, params: any) => {
   const { movieId, areaId } = params;
   if (typeof movieId !== "string" || typeof areaId !== "string") {
     return new Response("err", {
@@ -17,7 +18,13 @@ const handleRequest = async (_: Request, params: any) => {
     });
   }
 
-  const predict = await endScreeningPredict(movieId, areaId);
+  const predict = await endScreeningPredict(
+    parseInt(movieId).toString(),
+    parseInt(areaId).toString()
+  );
+  const calName = `「${predict?.name || movieId}」の「${
+    predict?.areaName || areaId
+  }」での上映終了予測日`;
   const { value, error } = ics.createEvents(
     [predict]
       .filter((s): s is typeof s & { predicted: DateTime } => "predicted" in s)
@@ -28,7 +35,8 @@ const handleRequest = async (_: Request, params: any) => {
         title: `「${name}」の「${areaName}」での上映終了予測日`,
         url,
         productId: "eiga-deno-dev/end-screening-predict",
-      })),
+        calName,
+      }))
   );
   if (error) {
     console.error(error);
@@ -37,21 +45,61 @@ const handleRequest = async (_: Request, params: any) => {
     });
   }
 
-  return new Response(
-    `X-WR-CALNAME:「${predict?.name || movieId}」の「${
-      predict?.areaName || areaId
-    }」での上映終了予測日\n${value || ""}`,
-    {
-      headers: {
-        "content-type": "text/calendar; charset=utf-8",
-        "cache-control": `max-age=3600`,
-      },
+  return new Response(value, {
+    headers: {
+      "content-type": "text/calendar; charset=utf-8",
+      "cache-control": `max-age=3600`,
     },
+  });
+};
+
+// deno-lint-ignore no-explicit-any
+const handleRequestEndCalendarTheater = async (_: Request, params: any) => {
+  const { theaterId } = params;
+  if (typeof theaterId !== "string") {
+    return new Response("err", {
+      status: 400,
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  }
+
+  const schedule = await getEndCalendarTheater(parseInt(theaterId).toString());
+  const calName = `${schedule.theaterName}の上映終了カレンダー`;
+  const { value, error } = ics.createEvents(
+    schedule.nearEndMovies.map(({ title, date, url }) => ({
+      uid: encode(`${schedule.theaterName}${title}`),
+      start: [date.year, date.month, date.day],
+      duration: { days: 1 },
+      title: `「${title}」の上映終了日`,
+      url,
+      productId: "eiga-deno-dev/end-calendar-theater",
+      location: schedule.theaterName,
+      calName,
+    }))
   );
+
+  if (error) {
+    console.error(error);
+    return new Response("ical generation error", {
+      status: 500,
+    });
+  }
+
+  return new Response(value, {
+    headers: {
+      "content-type": "text/calendar; charset=utf-8",
+      "cache-control": `max-age=3600`,
+    },
+  });
 };
 
 serve({
   "/": () => jsx(Index()),
   "/end-screening-predict": () => jsx(EndScreeningPredict()),
-  "/end-screening-predict/:movieId/:areaId.ics": handleRequest,
+  "/end-screening-predict/:movieId/:areaId.ics":
+    handleRequestEndScreeningPredict,
+  "/end-calendar-theater": () => jsx(EndCalendarTheater()),
+  "/end-calendar-theater/:theaterId.ics": handleRequestEndCalendarTheater,
 });
