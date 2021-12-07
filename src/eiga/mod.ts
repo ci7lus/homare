@@ -2,8 +2,11 @@ import { jsx, serve } from "https://deno.land/x/sift@0.3.6/mod.ts";
 import ics from "https://cdn.skypack.dev/ics@2.31.0";
 import { EndCalendarTheater, EndScreeningPredict, Index } from "./docs.tsx";
 import { endScreeningPredict } from "./end-screening-predict.ts";
-import { encode } from "https://deno.land/std@0.116.0/encoding/base64.ts";
-import { DateTime } from "https://deno.land/x/ptera@v1.0.0-beta/mod.ts";
+import { encode } from "https://deno.land/std@0.116.0/encoding/base64url.ts";
+import {
+  DateTime,
+  datetime,
+} from "https://deno.land/x/ptera@v1.0.0-beta/mod.ts";
 import { getEndCalendarTheater } from "./end-calendar-theater.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -20,7 +23,7 @@ const handleRequestEndScreeningPredict = async (_: Request, params: any) => {
 
   const predict = await endScreeningPredict(
     parseInt(movieId).toString(),
-    parseInt(areaId).toString()
+    parseInt(areaId).toString(),
   );
   const calName = `「${predict?.name || movieId}」の「${
     predict?.areaName || areaId
@@ -29,14 +32,14 @@ const handleRequestEndScreeningPredict = async (_: Request, params: any) => {
     [predict]
       .filter((s): s is typeof s & { predicted: DateTime } => "predicted" in s)
       .map(({ predicted, areaName, url, name }) => ({
-        uid: encode(`${areaName}${name}`),
+        uid: encode(areaName).slice(0, 32) + encode(name).slice(0, 32),
         start: [predicted.year, predicted.month, predicted.day],
         duration: { days: 1 },
         title: `「${name}」の「${areaName}」での上映終了予測日`,
         url,
         productId: "eiga-deno-dev/end-screening-predict",
         calName,
-      }))
+      })),
   );
   if (error) {
     console.error(error);
@@ -68,8 +71,16 @@ const handleRequestEndCalendarTheater = async (_: Request, params: any) => {
   const schedule = await getEndCalendarTheater(parseInt(theaterId).toString());
   const calName = `${schedule.theaterName}の上映終了カレンダー`;
   const { value, error } = ics.createEvents(
-    schedule.nearEndMovies.map(({ title, date, url }) => ({
-      uid: encode(`${schedule.theaterName}${title}`),
+    [
+      ...schedule.nearEndMovies,
+      {
+        title: `${schedule.theaterName}の上映終了カレンダー`,
+        date: datetime().add({ year: 1 }),
+        url: null,
+      },
+    ].map(({ title, date, url }) => ({
+      uid: encode(schedule.theaterName).slice(0, 32) +
+        encode(title).slice(0, 32),
       start: [date.year, date.month, date.day],
       duration: { days: 1 },
       title: `「${title}」の上映終了日`,
@@ -77,7 +88,7 @@ const handleRequestEndCalendarTheater = async (_: Request, params: any) => {
       productId: "eiga-deno-dev/end-calendar-theater",
       location: schedule.theaterName,
       calName,
-    }))
+    })),
   );
 
   if (error) {

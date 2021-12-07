@@ -14,14 +14,16 @@ const Wrapper = ({
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
-      ></link>
+      >
+      </link>
       <style
         dangerouslySetInnerHTML={{
           __html: `body {
           line-height: 2;
         }`,
         }}
-      ></style>
+      >
+      </style>
     </head>
     {children}
   </html>
@@ -107,7 +109,7 @@ export const EndCalendarTheater = () => (
           <code>416</code>が映画館IDです。
           <br />
           この場合、icsのURLは
-          <code>https://eiga.ci7lus.repl.co/end-calendar-theater/416.ics</code>
+          <code>https://eiga.deno.dev/end-calendar-theater/416.ics</code>
           です。Googleカレンダーなどに登録して利用してください。
         </p>
       </div>

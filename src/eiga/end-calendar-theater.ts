@@ -11,19 +11,20 @@ export const getEndCalendarTheater = async (theaterId: string) => {
   const theaterHtml = await fetch(`https://moviewalker.jp/th${theaterId}/`);
   const theaterDom = new DOMParser().parseFromString(
     await theaterHtml.text(),
-    "text/html"
+    "text/html",
   );
   if (!theaterDom) {
     throw new Error();
   }
-  const theaterName = theaterDom.querySelector("h1.el_lv1Heading")?.textContent;
+  const theaterName =
+    theaterDom.getElementsByClassName("el_lv1Heading")?.[0].textContent;
 
   const now = datetime().toZonedTime("Asia/Tokyo");
   const day = now.format("YYYY-MM-dd");
 
   const theaterJson = await fetch(
     `https://moviewalker.jp/api/schedule/${theaterId}?screeningDate=${day}`,
-    { headers: { "user-agent": USER_AGENT } }
+    { headers: { "user-agent": USER_AGENT } },
   );
   const schedule: { screenings: Movie[] } = await theaterJson.json();
   const nearEndMovies = schedule.screenings
@@ -40,10 +41,11 @@ export const getEndCalendarTheater = async (theaterId: string) => {
               return;
             }
             const [month, day] = matched;
-            const year =
-              now.month === 11 && month === "01" ? now.year + 1 : now.year;
+            const year = now.month === 11 && month === "01"
+              ? now.year + 1
+              : now.year;
             const date = datetime(`${year}/${month}/${day}`).toZonedTime(
-              "Asia/Tokyo"
+              "Asia/Tokyo",
             );
             return {
               date,
@@ -51,7 +53,7 @@ export const getEndCalendarTheater = async (theaterId: string) => {
               url: screening?.showtime?.[0].reservedUrl,
             };
           })
-          .filter((m): m is NonUndefined<typeof m> => !!m) || []
+          .filter((m): m is NonUndefined<typeof m> => !!m) || [],
     )
     .flat();
   return { theaterName, nearEndMovies };
