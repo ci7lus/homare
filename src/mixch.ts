@@ -67,7 +67,10 @@ const handleRequest = async () => {
 
   const lives = Array.from(querySelectorAll<HTMLLIElement>(list, "li.ticket"))
     .map((li) => {
-      const href = li.querySelector("a")?.href;
+      const href = li.querySelector("a")?.getAttribute("href");
+      if (!href) {
+        return;
+      }
       const title = li.querySelector("p.name")?.textContent;
       const date = li
         .querySelector("div.overview")
@@ -102,7 +105,7 @@ const handleRequest = async () => {
         start: dateToArr(item.startAt),
         duration: { hours: 1 },
         title: item.title,
-        url: item.href,
+        url: "https://mixch.tv" + item.href,
         productId: "mixch/ics",
       };
     })
@@ -114,12 +117,15 @@ const handleRequest = async () => {
     });
   }
 
-  return new Response(value, {
-    headers: {
-      "content-type": "text/calendar; charset=utf-8",
-      "cache-control": `max-age=${MAX_AGE}`,
-    },
-  });
+  return new Response(
+    value.replace("METHOD:PUBLISH", "METHOD:PUBLISH\nTZID:Asia/Tokyo"),
+    {
+      headers: {
+        "content-type": "text/calendar; charset=utf-8",
+        "cache-control": `max-age=${MAX_AGE}`,
+      },
+    }
+  );
 };
 
 serve({
