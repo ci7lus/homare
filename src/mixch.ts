@@ -27,7 +27,7 @@ const monthAndDateToDT = (
   const now = datetime().toZonedTime("Asia/Tokyo");
   const year = now.month === 11 && month === "1" ? now.year + 1 : now.year;
   return datetime(
-    `${year}/${z(month)}/${z(date)} ${z(hour)}:${z(minute)}:00`
+    `${year}-${z(month)}-${z(date)}T${z(hour)}:${z(minute)}+09:00`
   ).toZonedTime("Asia/Tokyo");
 };
 
