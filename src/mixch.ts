@@ -28,7 +28,9 @@ const monthAndDateToDT = (
   const year = now.month === 11 && month === "1" ? now.year + 1 : now.year;
   return datetime(
     `${year}-${z(month)}-${z(date)}T${z(hour)}:${z(minute)}+09:00`
-  ).toZonedTime("Asia/Tokyo");
+  )
+    .subtract({ hour: Deno.env.get("DEPLOY") ? 9 : 0 })
+    .toZonedTime("Asia/Tokyo");
 };
 
 await initParser();
@@ -100,6 +102,11 @@ const handleRequest = async () => {
 
   const { error, value } = ics.createEvents(
     lives.map((item) => {
+      console.log(
+        item.title,
+        item.startAt.format("yyyy-MM-dd HH:mm"),
+        dateToArr(item.startAt)
+      );
       return {
         uid: item.href,
         start: dateToArr(item.startAt),
