@@ -73,7 +73,7 @@ const handleRequest = async () => {
           timezone: "UTC",
         }).toZonedTime("Asia/Tokyo");
         return item.listview_date
-          .split(/・|〜|~/)
+          .split(/・|〜|~|-/)
           .map((dateStr, idx) => {
             const dateIdent = dateStr
               .split(/\.|\//)
@@ -86,9 +86,13 @@ const handleRequest = async () => {
                 console.warn(`Unexpected splitter: ${dateStr}`);
               }
               [year, month, day] = dateIdent;
-            } else {
+            } else if (2 === dateIdent.length) {
               year = countdown.year;
               [month, day] = dateIdent;
+            } else {
+              year = countdown.year;
+              month = countdown.month;
+              [day] = dateIdent;
             }
             const target = datetime(item.countdown_live!, {
               timezone: "UTC",
@@ -113,7 +117,7 @@ const handleRequest = async () => {
             productId: "asobistage/ics",
           }));
       })
-      .flat(),
+      .flat()
   );
   if (error) {
     console.error(error);
