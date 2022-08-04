@@ -136,9 +136,9 @@ const handleRequest = async () => {
         const [evStart, evEnd] = eventDate.map(parseTextDate);
         const createEvent = (datetime: DateTime, idx?: number) => ({
           uid: item.id + "-" + (idx || 0),
-          start: dateToArr(datetime),
-          created: dateToArr(created),
-          lastModified: dateToArr(lastModified),
+          start: dateToArr(datetime.toUTC()),
+          created: dateToArr(created.toUTC()),
+          lastModified: dateToArr(lastModified.toUTC()),
           duration: { hours: 1 },
           title: `${item.title}${idx !== undefined ? ` (Day ${idx + 1})` : ""}`,
           url: item.ticket_link?.startsWith("/")
