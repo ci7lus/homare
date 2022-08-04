@@ -65,13 +65,13 @@ const handleRequest = async () => {
       .map((item) => {
         const countdown = datetime(item.countdown_live!, {
           timezone: "UTC",
-        }).toZonedTime("Asia/Tokyo");
+        });
         const created = datetime(item.createdAt, {
           timezone: "UTC",
-        }).toZonedTime("Asia/Tokyo");
+        });
         const lastModified = datetime(item.revisedAt, {
           timezone: "UTC",
-        }).toZonedTime("Asia/Tokyo");
+        });
 
         const listviewDate = item.listview_date
           .split(/・|〜|～|~|-|\s\/\s|\n/)
@@ -129,16 +129,16 @@ const handleRequest = async () => {
           if (hour !== null && minute !== null) {
             dt.add({ hour, minute });
           }
-          return dt;
+          return dt.toUTC();
         };
 
-        const [lvStart, lvEnd] = listviewDate.map(parseTextDate);
+        const [, lvEnd] = listviewDate.map(parseTextDate);
         const [evStart, evEnd] = eventDate.map(parseTextDate);
         const createEvent = (datetime: DateTime, idx?: number) => ({
           uid: item.id + "-" + (idx || 0),
-          start: dateToArr(datetime.toUTC()),
-          created: dateToArr(created.toUTC()),
-          lastModified: dateToArr(lastModified.toUTC()),
+          start: dateToArr(datetime),
+          created: dateToArr(created),
+          lastModified: dateToArr(lastModified),
           duration: { hours: 1 },
           title: `${item.title}${idx !== undefined ? ` (Day ${idx + 1})` : ""}`,
           url: item.ticket_link?.startsWith("/")
@@ -149,7 +149,7 @@ const handleRequest = async () => {
         // listviewだと長過ぎる: THE IDOLM@STER MILLION LIVE!7thLIVE Q@MP FLYER!!! Reburn
         // eventdateだと長過ぎる: オンラインドラマシアター「人間椅子」
         if (!lvEnd || !evEnd) {
-          return [createEvent(lvStart)];
+          return [createEvent(countdown)];
         }
         const diffInDate =
           (evEnd.toMilliseconds() - evStart.toMilliseconds()) /
@@ -158,7 +158,7 @@ const handleRequest = async () => {
           60 /
           24;
         return [...Array(Math.floor(diffInDate) + 1).keys()]
-          .map((add) => [datetime(evStart).add({ day: add }), add] as const)
+          .map((add) => [datetime(countdown).add({ day: add }), add] as const)
           .map(([datetime, idx]) => createEvent(datetime, idx));
       })
       .flat()
