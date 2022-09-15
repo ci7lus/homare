@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/x/sift@0.5.0/mod.ts";
+import { serve } from "https://deno.land/x/sift@0.6.0/mod.ts";
 import ics from "https://cdn.skypack.dev/ics";
 import { DateTime, datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
 import {

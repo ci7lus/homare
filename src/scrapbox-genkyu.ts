@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/x/sift@0.5.0/mod.ts";
+import { serve } from "https://deno.land/x/sift@0.6.0/mod.ts";
 import * as $ from "https://deno.land/x/zod@v3.8.0/mod.ts";
 import { parseFeed } from "https://deno.land/x/rss@0.5.3/mod.ts";
 import { Feed } from "https://jspm.dev/feed@4.2.2";

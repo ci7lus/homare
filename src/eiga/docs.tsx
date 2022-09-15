@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://deno.land/x/sift@0.4.2/mod.ts";
+import { h } from "https://deno.land/x/sift@0.6.0/mod.ts";
 
 const Wrapper = ({
   title,
@@ -14,16 +14,14 @@ const Wrapper = ({
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
-      >
-      </link>
+      ></link>
       <style
         dangerouslySetInnerHTML={{
           __html: `body {
           line-height: 2;
         }`,
         }}
-      >
-      </style>
+      ></style>
     </head>
     {children}
   </html>
