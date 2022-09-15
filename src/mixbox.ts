@@ -60,11 +60,24 @@ const handleRequest = async () => {
       const [startHour, startMinute, endHour, endMinute] = schedule.timeframe
         .split(/-|:/)
         .map((n) => parseInt(n));
-      const start = [...schedule.date, startHour, startMinute];
-      const end = [...schedule.date, endHour, endMinute];
-      if (endHour < 6) {
+      const [realStartHour, realStartMinute, realEndHour, realEndMinute] =
+        schedule.name
+          .split(/\(|:|～/)
+          .map((n) => parseInt(n))
+          .filter((n) => !isNaN(n));
+      const start = [
+        ...schedule.date,
+        realStartHour || startHour,
+        realStartMinute || startMinute,
+      ];
+      const end = [
+        ...schedule.date,
+        realEndHour || endHour,
+        realEndMinute || endMinute,
+      ];
+      if (18 < start[3] && end[3] < 6) {
         end[2] += 1;
-      } else if (endHour === 24) {
+      } else if (end[3] === 24) {
         end[2] += 1;
         end[3] = 0;
         end[4] = 0;
