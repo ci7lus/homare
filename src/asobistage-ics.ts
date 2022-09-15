@@ -4,7 +4,7 @@ import { DateTime, datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
 
 const SOURCE_URL =
   "https://github.com/ci7lus/homare/blob/master/src/asobistage-ics.ts";
-const MAX_AGE = 60 * 60 * 12;
+const MAX_AGE = 60 * 60;
 
 const dateToArr = (d: DateTime) => {
   const date = d.toDateObj();
@@ -172,7 +172,7 @@ const handleRequest = async () => {
 
   return new Response(value, {
     headers: {
-      "content-type": "text/calendar; charset=utf-8",
+      "content-type": "text/plain; charset=utf-8",
       "cache-control": `max-age=${MAX_AGE}`,
     },
   });

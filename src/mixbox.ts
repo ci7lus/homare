@@ -110,7 +110,7 @@ const handleRequest = async () => {
   }
   return new Response(value, {
     headers: {
-      "content-type": "text/calendar; charset=utf-8",
+      "content-type": "text/plain; charset=utf-8",
       "cache-control": `public, max-age=${MAX_AGE}`,
     },
   });

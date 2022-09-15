@@ -9,7 +9,7 @@ import {
 } from "https://deno.land/x/deno_dom@v0.1.31-alpha/deno-dom-wasm-noinit.ts";
 
 const SOURCE_URL = "https://github.com/ci7lus/homare/blob/master/src/mixch.ts";
-const MAX_AGE = 60 * 60 * 12;
+const MAX_AGE = 60 * 60;
 
 const dateToArr = (d: DateTime) => {
   const date = d.toDateObj();
@@ -121,7 +121,7 @@ const handleRequest = async () => {
     value.replace("METHOD:PUBLISH", "METHOD:PUBLISH\nTZID:Asia/Tokyo"),
     {
       headers: {
-        "content-type": "text/calendar; charset=utf-8",
+        "content-type": "text/plain; charset=utf-8",
         "cache-control": `max-age=${MAX_AGE}`,
       },
     }

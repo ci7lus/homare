@@ -50,7 +50,7 @@ const handleRequestEndScreeningPredict = async (_: Request, params: any) => {
 
   return new Response(value, {
     headers: {
-      "content-type": "text/calendar; charset=utf-8",
+      "content-type": "text/plain; charset=utf-8",
       "cache-control": `max-age=3600`,
     },
   });
@@ -100,7 +100,7 @@ const handleRequestEndCalendarTheater = async (_: Request, params: any) => {
 
   return new Response(value, {
     headers: {
-      "content-type": "text/calendar; charset=utf-8",
+      "content-type": "text/plain; charset=utf-8",
       "cache-control": `max-age=3600`,
     },
   });
