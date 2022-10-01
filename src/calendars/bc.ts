@@ -38,6 +38,7 @@ export const handleBandaiChannel = async () => {
       const endAt = datetime(schedule.program_end_date, {
         timezone: "Asia/Tokyo",
       }).toZonedTime("UTC");
+      const url = `https://live.b-ch.com/${schedule.alias}`;
       return {
         uid: schedule.alias,
         start: dateToArr(startAt),
@@ -47,7 +48,8 @@ export const handleBandaiChannel = async () => {
         endInputType: "utc",
         endOutputType: "utc",
         title: schedule.program_title,
-        url: `https://live.b-ch.com/${schedule.alias}`,
+        url,
+        description: url,
         productId: "homare/calendars/bc",
       };
     })
