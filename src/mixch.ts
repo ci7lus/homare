@@ -100,12 +100,14 @@ const handleRequest = async () => {
 
   const { error, value } = ics.createEvents(
     lives.map((item) => {
+      const url = `https://mixch.tv${item.href}`;
       return {
         uid: item.href,
         start: dateToArr(item.startAt.toUTC()),
         duration: { hours: 1 },
         title: item.title,
-        url: "https://mixch.tv" + item.href,
+        url,
+        description: url,
         productId: "mixch/ics",
       };
     })

@@ -98,6 +98,7 @@ const handleRequest = async () => {
         endOutputType: "utc",
         title: schedule.name,
         url: "https://mixbox.live/",
+        description: "https://mixbox.live/",
         productId: "mixbox/ics",
       };
     })
