@@ -33,14 +33,11 @@ const handleRequest = async () => {
       const startAt = datetime(live.liveOpenUnixTime * 1000, {
         timezone: "Asia/Tokyo",
       });
-      const endAt = datetime(live.liveCloseUnixTime * 1000, {
-        timezone: "Asia/Tokyo",
-      });
 
       return {
         uid: live.id.toString(),
         start: dateToArr(startAt.toUTC()),
-        end: dateToArr(endAt.toUTC()),
+        duration: { hours: 1 },
         title: live.name,
         url,
         description: url,
