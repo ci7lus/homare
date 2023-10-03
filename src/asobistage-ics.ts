@@ -178,7 +178,77 @@ const handleRequest = async () => {
   });
 };
 
+const handleChannelRequest = async () => {
+  const response = await fetch("https://channel.microcms.io/api/v1/top", {
+    headers: {
+      "user-agent": `asobistage-ics (+${SOURCE_URL})`,
+      "X-Microcms-Api-Key": "qRaKehul9AHU8KtL0dnq1OCLKnFec6yrbcz3",
+    },
+  });
+
+  if (!response.ok) {
+    console.warn(await response.text());
+    return new Response("fetch error", {
+      status: 500,
+    });
+  }
+
+  const json: {
+    pickup_list: {
+      body: string;
+      id: string;
+      period?: { start?: string; end?: string };
+      createdAt: string;
+      updatedAt: string;
+      title: string;
+      contents: { video_type: string[] };
+    }[];
+  } = await response.json();
+
+  const { error, value } = ics.createEvents(
+    json.pickup_list
+      .filter((item) => item.contents.video_type.includes("LIVE"))
+      .map((item) => {
+        const startAt = datetime(item.period?.start ?? item.updatedAt, {
+          timezone: "UTC",
+        });
+        const createdAt = datetime(item.createdAt, { timezone: "UTC" });
+        const updatedAt = datetime(item.updatedAt, { timezone: "UTC" });
+        const url = `https://asobichannel.asobistore.jp/watch/${item.id}`;
+        return {
+          uid: `asobichannel/${item.id}`,
+          start: dateToArr(startAt),
+          duration: { hours: 1 },
+          created: dateToArr(createdAt),
+          lastModified: dateToArr(updatedAt),
+          title: `${item.period?.start ? "" : "[放送日付不明]"}${item.title}`,
+          url,
+          description: `${url}\n${item.body}`,
+          productId: "asobichannel/ics",
+        };
+      })
+  );
+
+  if (error) {
+    console.error(error);
+    return new Response("ical generation error", {
+      status: 500,
+    });
+  }
+
+  return new Response(value, {
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": `max-age=${MAX_AGE}`,
+    },
+  });
+};
+
 serve({
-  "/": () => new Response(`asobistage-ics: /calendar.ics (+${SOURCE_URL})`),
+  "/": () =>
+    new Response(
+      `asobistage-ics: /calendar.ics (+${SOURCE_URL})\nasobichannel-ics: /channel.ics`
+    ),
   "/calendar.ics": handleRequest,
+  "/channel.ics": handleChannelRequest,
 });
