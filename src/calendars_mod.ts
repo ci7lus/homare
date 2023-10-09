@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/x/sift@0.6.0/mod.ts";
 import { handleBandaiChannel } from "./calendars/bc.ts";
-import { handleRequest as handleMixch } from "./mixch.ts";
+import { handleMixch } from "./calendars/mixch.ts";
 
 const SOURCE_URL =
   "https://github.com/ci7lus/homare/blob/master/src/calendars_mod.ts";
