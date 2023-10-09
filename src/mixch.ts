@@ -10,10 +10,20 @@ const dateToArr = (d: DateTime) => {
   return [date.year, date.month, date.day, date.hour, date.minute];
 };
 
-const handleRequest = async () => {
-  const response = await fetch("https://mixch.tv/api-web/liveview/list");
+export const handleRequest = async () => {
+  const response = await fetch("https://mixch.tv/api-web/liveview/list", {
+    headers: {
+      accept: "*/*",
+      "accept-language": "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+      "cache-control": "no-cache",
+      pragma: "no-cache",
+      referer: "https://mixch.tv/liveview/list",
+      "user-agent": "mixch-ics/1.0",
+    },
+  });
 
   if (!response.ok) {
+    console.log(await response.text());
     return new Response("fetch error", {
       status: 500,
     });
@@ -22,6 +32,7 @@ const handleRequest = async () => {
     liveviews: {
       id: number;
       name: string;
+      description: string;
       liveOpenUnixTime: number;
       liveCloseUnixTime: number;
     }[];
@@ -31,7 +42,7 @@ const handleRequest = async () => {
     json.liveviews.map((live) => {
       const url = `https://mixch.tv/liveview/${live.id}/detail`;
       const startAt = datetime(live.liveOpenUnixTime * 1000, {
-        timezone: "Asia/Tokyo",
+        timezone: "UTC",
       });
 
       return {
@@ -40,7 +51,7 @@ const handleRequest = async () => {
         duration: { hours: 1 },
         title: live.name,
         url,
-        description: url,
+        description: `${url}\n${live.description}`,
         productId: "mixch/ics",
       };
     })
