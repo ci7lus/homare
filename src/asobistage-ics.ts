@@ -179,12 +179,15 @@ const handleRequest = async () => {
 };
 
 const handleChannelRequest = async () => {
-  const response = await fetch("https://channel.microcms.io/api/v1/top", {
-    headers: {
-      "user-agent": `asobistage-ics (+${SOURCE_URL})`,
-      "X-Microcms-Api-Key": "qRaKehul9AHU8KtL0dnq1OCLKnFec6yrbcz3",
-    },
-  });
+  const response = await fetch(
+    "https://channel.microcms.io/api/v1/media?orders=-period.start&limit=15",
+    {
+      headers: {
+        "user-agent": `asobistage-ics (+${SOURCE_URL})`,
+        "X-Microcms-Api-Key": "qRaKehul9AHU8KtL0dnq1OCLKnFec6yrbcz3",
+      },
+    }
+  );
 
   if (!response.ok) {
     console.warn(await response.text());
@@ -194,7 +197,7 @@ const handleChannelRequest = async () => {
   }
 
   const json: {
-    pickup_list: {
+    contents: {
       body: string;
       id: string;
       period?: { start?: string; end?: string };
@@ -206,7 +209,7 @@ const handleChannelRequest = async () => {
   } = await response.json();
 
   const { error, value } = ics.createEvents(
-    json.pickup_list
+    json.contents
       .filter((item) => item.contents.video_type.includes("LIVE"))
       .map((item) => {
         const startAt = datetime(item.period?.start ?? item.updatedAt, {
