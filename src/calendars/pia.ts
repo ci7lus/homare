@@ -65,7 +65,7 @@ export const handlePia = async () => {
         duration: { hours: 1 },
         title: live.bndlTtlNm,
         url,
-        description: `${url}\n${live.bndlShortCatch || ""}`,
+        description: `${url}\n${live.bndlShortCatch || ""}\n${live.lgenreCd}`,
         productId: "pia/ics",
       };
     })
