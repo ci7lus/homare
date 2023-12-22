@@ -6,14 +6,18 @@ const _ = "https://github.com/ci7lus/homare/blob/master/src/mixch.ts";
 const MAX_AGE = 60 * 60;
 
 export const handlePia = async () => {
-  const response = await fetch("https://t.pia.jp/streaming", {
-    headers: {
-      accept: "text/html",
-      "cache-control": "no-cache",
-      pragma: "no-cache",
-      "user-agent": "pia-ics/1.0",
-    },
-  });
+  const response = await fetch(
+    `https://t.pia.jp/pia/event/ajax/getRelatedEventInfo?tagCd=0000094&tgtStartDate=&tgtEndDate=&lgenreCd=&sgenreCd=&tagExType=2&_=${new Date().getTime()}`,
+    {
+      headers: {
+        accept: "application/json, text/javascript, */*; q=0.01",
+        "cache-control": "no-cache",
+        pragma: "no-cache",
+        "user-agent": "pia-ics/1.0",
+        Referer: "https://t.pia.jp/streaming",
+      },
+    }
+  );
 
   if (!response.ok) {
     console.log(await response.text());
@@ -21,8 +25,6 @@ export const handlePia = async () => {
       status: 500,
     });
   }
-  const html = await response.text();
-  const jsonStr = html.split(`var rltdEventInfo = `)?.[1]?.split(`;`)?.[0];
 
   const json: {
     results: {
@@ -43,7 +45,7 @@ export const handlePia = async () => {
       zaikoFlg: "0";
       perfStdaFormatted: "12/23(土)";
     }[];
-  } = JSON.parse(jsonStr);
+  } = await response.json();
 
   const { error, value } = ics.createEvents(
     json.results.map((live) => {
