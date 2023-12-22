@@ -1,4 +1,4 @@
-import ics from "https://cdn.skypack.dev/ics";
+import ics from "https://cdn.skypack.dev/ics@v2.35.0";
 import { datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
 import { dateToArr } from "./dateutils.ts";
 
