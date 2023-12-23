@@ -52,11 +52,14 @@ serve({
       }
     }
 
-    return new Response(JSON.stringify({ ...metadata, images }), {
-      headers: {
-        "content-type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    return new Response(
+      JSON.stringify({ ...metadata, images: Array.from(new Set(images)) }),
+      {
+        headers: {
+          "content-type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
   },
 });
