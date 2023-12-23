@@ -22,7 +22,8 @@ serve({
     const url = new URL(request.url);
     const targetUrl = url.searchParams
       .get("url")
-      ?.replace("//twitter.com", "//vxtwitter.com");
+      ?.replace("//twitter.com", "//vxtwitter.com")
+      ?.replace("//x.com", "//vxtwitter.com");
     if (!targetUrl) {
       return new Response(`mieruko (+${SOURCE_URL})`);
     }
