@@ -49,7 +49,10 @@ export const handlePia = async () => {
 
   const { error, value } = ics.createEvents(
     json.results.map((live) => {
-      const url = `http://t.pia.jp/pia/event/event.do?eventBundleCd=${live.bndlCd}`;
+      const url =
+        live.bundleFlg == "1"
+          ? `http://t.pia.jp/pia/event/event.do?eventBundleCd=${live.bndlCd}`
+          : `https://t.pia.jp/pia/event/event.do?eventCd=${live.bndlCd}`;
       const prefix = live.perfStda
         .split("(")?.[0]
         ?.split("/")
