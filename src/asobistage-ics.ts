@@ -12,56 +12,43 @@ const dateToArr = (d: DateTime) => {
 };
 
 const handleRequest = async () => {
-  const response = await fetch("https://asobistage.asobistore.jp/", {
-    headers: {
-      "user-agent": `asobistage-ics (+${SOURCE_URL})`,
-    },
-  });
+  const response = await fetch(
+    "https://asobistage.microcms.io/api/v1/event?limit=6&filters=pickup%5Bequals%5Dtrue",
+    {
+      headers: {
+        "X-Microcms-Api-Key": "ece26e2c-22ab-4e3b-98ed-d6daca970eeb",
+      },
+    }
+  );
 
   if (!response.ok) {
     return new Response("fetch error", {
       status: 500,
     });
   }
-
-  const text = await response.text();
-  const json = text.match(/type=\"application\/json">(.+)<\/script>/)?.[1];
-
-  if (!json) {
-    return new Response("json not found", {
-      status: 500,
-    });
-  }
   const next: {
-    props: {
-      pageProps: {
-        initialData: {
-          contents: {
-            id: string;
-            createdAt: string;
-            updatedAt: string;
-            publishedAt: string;
-            revisedAt: string;
-            type: string[];
-            title: string;
-            text_eventdate: string;
-            text_archivedate: string;
-            listview_date: string;
-            countdown_live?: string;
-            ticket_link: string;
-            official_link: string;
-            otherLinks: [];
-            hashEventpage: boolean;
-            pickup: boolean;
-          }[];
-        };
-      };
-    };
-  } = JSON.parse(json);
+    contents: {
+      id: string;
+      createdAt: string;
+      updatedAt: string;
+      publishedAt: string;
+      revisedAt: string;
+      type: string[];
+      title: string;
+      text_eventdate: string;
+      text_archivedate: string;
+      listview_date: string;
+      countdown_live?: string;
+      ticket_link: string;
+      official_link: string;
+      otherLinks: [];
+      hashEventpage: boolean;
+      pickup: boolean;
+    }[];
+  } = await response.json();
 
   const { error, value } = ics.createEvents(
-    next.props.pageProps.initialData.contents
-      .filter((item) => item.countdown_live)
+    next.contents
       .map((item) => {
         const countdown = datetime(item.countdown_live!, {
           timezone: "UTC",
@@ -183,7 +170,6 @@ const handleChannelRequest = async () => {
     "https://channel.microcms.io/api/v1/media?orders=-period.start&limit=15",
     {
       headers: {
-        "user-agent": `asobistage-ics (+${SOURCE_URL})`,
         "X-Microcms-Api-Key": "qRaKehul9AHU8KtL0dnq1OCLKnFec6yrbcz3",
       },
     }
