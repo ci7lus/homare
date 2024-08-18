@@ -155,11 +155,99 @@ const handleChannelRequest = async () => {
   });
 };
 
+const handleTicketRequest = async () => {
+  const response = await fetch(
+    "https://asobi-ticket.api.app.t-riple.com/api/v1/public/receptions"
+  );
+
+  if (!response.ok) {
+    console.warn(await response.text());
+    return new Response("fetch error", {
+      status: 500,
+    });
+  }
+
+  type RelationshipType = "booth" | "tour" | "image" | "act";
+
+  const json: {
+    data: {
+      type: "reception";
+      id: string;
+      attributes: {
+        name: string;
+        status: string;
+        main_body: string;
+        entry_period_starts_at: string;
+      };
+      relationships: {
+        tour: {
+          data?: {
+            id: string;
+            type: RelationshipType;
+          };
+        };
+      };
+    }[];
+    included: {
+      id: string;
+      type: RelationshipType;
+      attributes: {
+        slug: string;
+        name: string;
+        status: "not_public";
+      };
+    }[];
+  } = await response.json();
+
+  const { error, value } = ics.createEvents(
+    json.data
+      .filter(
+        (item) =>
+          item.type === "reception" &&
+          item.attributes.status === "public" &&
+          item.relationships.tour
+      )
+      .map((item) => {
+        const startAt = datetime(item.attributes.entry_period_starts_at, {
+          timezone: "JST",
+        });
+        const tour = json.included.find(
+          (i) => i.id === item.relationships.tour.data?.id
+        );
+        const url = `https://asobiticket2.asobistore.jp/receptions/${item.id}`;
+        return {
+          uid: `asobiticket/${item.id}`,
+          start: dateToArr(startAt),
+          duration: { hours: 1 },
+          title: `${tour?.attributes.name} ${item.attributes.name}`,
+          url,
+          description: `${url}\n${item.attributes.main_body}`,
+          productId: "asobichannel/ics",
+        };
+      })
+  );
+
+  if (error) {
+    console.error(error);
+    return new Response("ical generation error", {
+      status: 500,
+    });
+  }
+
+  return new Response(value, {
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": `max-age=${MAX_AGE}`,
+    },
+  });
+};
+
 serve({
   "/": () =>
     new Response(
-      `asobistage-ics: /calendar.ics (+${SOURCE_URL})\nasobichannel-ics: /channel.ics`
+      `asobistage-ics: /calendar.ics (+${SOURCE_URL})\nasobichannel-ics: /channel.ics\nasobiticket-ics: /ticket.ics`
     ),
   "/calendar.ics": handleRequest,
   "/channel.ics": handleChannelRequest,
+  "/ticket.ics": handleTicketRequest,
 });
