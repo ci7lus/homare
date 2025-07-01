@@ -12,15 +12,11 @@ jobs:
   lint:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
       - uses: actions/checkout@v1
       - uses: denoland/setup-deno@main
         with:
-          deno-version: "1.13.2"
+          deno-version: "2.1.9"
       - name: lint
         run: |
           deno lint
