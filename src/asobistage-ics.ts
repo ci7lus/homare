@@ -4,6 +4,9 @@ import { DateTime, datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
 import ical from "npm:ical-generator@7.0.0";
 import { getVtimezoneComponent } from "npm:@touch4it/ical-timezones@1.9.0";
 import dayjs from "npm:dayjs@1.11.10";
+import customParseFormat from "npm:dayjs@1.11.10/plugin/customParseFormat.js";
+
+dayjs.extend(customParseFormat);
 
 const SOURCE_URL =
   "https://github.com/ci7lus/homare/blob/master/src/asobistage-ics.ts";
@@ -15,66 +18,55 @@ const dateToArr = (d: DateTime) => {
 };
 
 const handleRequest = async () => {
-  const [cdnEventsReq, microEventsReq] = await Promise.all([
+  const [eventReq, eventListReq] = await Promise.all([
+    fetch("https://asobistage.asobistore.jp/cdn/v101/commons/event.json"),
     fetch("https://asobistage.asobistore.jp/cdn/v101/commons/event_list.json"),
-    fetch(
-      "https://asobistage.microcms.io/api/v1/event?limit=6&filters=pickup%5Bequals%5Dtrue",
-      {
-        headers: {
-          "X-Microcms-Api-Key": "ece26e2c-22ab-4e3b-98ed-d6daca970eeb",
-        },
-      }
-    ),
   ]);
 
-  if (!cdnEventsReq.ok || !microEventsReq.ok) {
+  if (!eventReq.ok || !eventListReq.ok) {
     return new Response("fetch error", {
       status: 500,
     });
   }
 
-  const cdnEvents: {
-    events: { slug: string; event_performance_date: string[] }[];
-  } = await cdnEventsReq.json();
-  const microEvents: {
-    contents: {
-      id: string;
-      title: string;
-      countdown_live?: string;
-      ticket_link: string;
-    }[];
-  } = await microEventsReq.json();
+  const cdnEvent = (await eventReq.json()) as {
+    contents: CdnEventContent[];
+  };
+  const cdnEventList = (await eventListReq.json()) as {
+    events: CdnEventListItem[];
+  };
 
-  const calendar = ical({ name: "Streaming+" });
+  const calendar = ical({ name: "asobistage" });
   calendar.timezone({
     name: "Asia/Tokyo",
     generator: getVtimezoneComponent,
   });
 
-  cdnEvents.events.forEach((cEvent) => {
-    const event = microEvents.contents.find((item) => item.id === cEvent.slug);
-    if (!event || !event.countdown_live) {
+  cdnEvent.contents.forEach((event) => {
+    if (event.release_status !== 1) {
       return;
     }
-    const startAt = dayjs(event.countdown_live);
-    for (const [dateStr, idx] of cEvent.event_performance_date.map(
-      (d, idx) => [d, idx] as const
-    )) {
-      const date = dayjs(dateStr);
-      const startAtInDate = startAt
-        .clone()
-        .set("year", date.year())
-        .set("month", date.month())
-        .set("date", date.date());
+    const pair = cdnEventList.events.find((e) => e.slug === event.id);
+    if (!pair) {
+      return;
+    }
+    const createdAt = dayjs(event.createdAt).toDate();
+    const updatedAt = dayjs(event.updatedAt).toDate();
+    for (const broadcast of pair.broadcasts) {
+      if (broadcast.schedule_release_flag !== 1) {
+        continue;
+      }
+      const date = dayjs(broadcast.performance_date, "YYYY-MM-DD");
+
       calendar.createEvent({
-        id: `${event.id}-${idx}`,
-        start: startAtInDate.toDate(),
-        end: startAtInDate.clone().add(1, "hour").toDate(),
-        summary: `${event.title}${
-          cEvent.event_performance_date.length >= 2 ? ` ${idx + 1}日目` : ""
-        }`,
-        description: `https://asobistage.asobistore.jp${event.ticket_link}`,
+        id: `${event.id}-${broadcast.broadcast_slug}`,
+        start: date.toDate(),
+        allDay: true,
+        summary: [event.title, broadcast.broadcast_name].join(" "),
+        description: `https://asobistage.asobistore.jp/event/${pair.slug}/${broadcast.broadcast_slug}`,
         timezone: "Asia/Tokyo",
+        created: createdAt,
+        lastModified: updatedAt,
       });
     }
   });
@@ -240,6 +232,35 @@ const handleTicketRequest = async () => {
       "cache-control": `max-age=${MAX_AGE}`,
     },
   });
+};
+
+type CdnEventContent = {
+  content_id: string;
+  countdown_archive: string;
+  countdown_live: string;
+  createdAt: string;
+  event_end_date: string;
+  event_performance_date: string[];
+  event_start_date: string;
+  id: string;
+  publishedAt: string;
+  release_status: number;
+  revisedAt: string;
+  thumb: { url: string };
+  title: string;
+  type: string[];
+  updatedAt: string;
+};
+type CdnEventListItem = {
+  slug: string;
+  event_performance_date: string[];
+  broadcasts: CdnEventListBroadcast[];
+};
+type CdnEventListBroadcast = {
+  broadcast_name: string;
+  broadcast_slug: string;
+  performance_date: string;
+  schedule_release_flag: number;
 };
 
 serve({
