@@ -1,8 +1,14 @@
-import ics from "https://cdn.skypack.dev/ics@v2.35.0";
-import { datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
-import { dateToArr } from "./dateutils.ts";
+import ical from "npm:ical-generator@7.0.0";
+import { getVtimezoneComponent } from "npm:@touch4it/ical-timezones@1.9.0";
+import dayjs from "npm:dayjs@1.11.10";
+import timezone from "npm:dayjs@1.11.10/plugin/timezone.js";
+import utc from "npm:dayjs@1.11.10/plugin/utc.js";
+import customParseFormat from "npm:dayjs@1.11.10/plugin/customParseFormat.js";
 
-const _ = "https://github.com/ci7lus/homare/blob/master/src/mixch.ts";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
+
 const MAX_AGE = 60 * 60;
 
 export const handlePia = async () => {
@@ -47,48 +53,42 @@ export const handlePia = async () => {
     }[];
   } = await response.json();
 
-  const { error, value } = ics.createEvents(
-    json.results.map((live) => {
-      const url =
-        live.bundleFlg == "1"
-          ? `http://t.pia.jp/pia/event/event.do?eventBundleCd=${live.bndlCd}`
-          : `https://t.pia.jp/pia/event/event.do?eventCd=${live.bndlCd}`;
-      const prefix = live.perfStda
-        .split("(")?.[0]
-        ?.split("/")
-        .map((s) => (s.length === 1 ? `0${s}` : s))
-        .join("-");
-      const suffix = live.perfStdaFormatted.split(" ")?.[1];
-      const date = `${prefix || ""} ${suffix || "00:00"}`.trim();
-      const startAt = datetime(date, {
-        timezone: "Asia/Tokyo",
-      });
+  const calendar = ical({ name: "PIA" });
+  calendar.timezone({
+    name: "Asia/Tokyo",
+    generator: getVtimezoneComponent,
+  });
 
-      return {
-        uid: live.bndlCd,
-        start: dateToArr(startAt.toUTC()),
-        duration: { hours: 1 },
-        title: live.bndlTtlNm,
-        url,
-        description: `${url}\n${live.bndlShortCatch || ""}\n${live.lgenreCd}`,
-        productId: "pia/ics",
-      };
-    })
-  );
-  if (error) {
-    console.error(error);
-    return new Response("ical generation error", {
-      status: 500,
+  for (const live of json.results) {
+    const url =
+      live.bundleFlg == "1"
+        ? `http://t.pia.jp/pia/event/event.do?eventBundleCd=${live.bndlCd}`
+        : `https://t.pia.jp/pia/event/event.do?eventCd=${live.bndlCd}`;
+    const prefix = live.perfStda
+      .split("(")?.[0]
+      ?.split("/")
+      .map((s) => (s.length === 1 ? `0${s}` : s))
+      .join("-");
+    const suffix = live.perfStdaFormatted.split(" ")?.[1];
+    const date = `${prefix || ""} ${suffix || "00:00"}`.trim();
+    const startAt = dayjs.tz(date, "YYYY-MM-DD HH:mm", "Asia/Tokyo");
+    const endAt = startAt.add(1, "hour");
+
+    calendar.createEvent({
+      id: live.bndlCd,
+      start: startAt.toDate(),
+      end: endAt.toDate(),
+      summary: live.bndlTtlNm,
+      url,
+      description: `${url}\n${live.bndlShortCatch || ""}\n${live.lgenreCd}`,
+      timezone: "Asia/Tokyo",
     });
   }
 
-  return new Response(
-    value?.replace("METHOD:PUBLISH", "METHOD:PUBLISH\nTZID:Asia/Tokyo"),
-    {
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": `max-age=${MAX_AGE}`,
-      },
-    }
-  );
+  return new Response(calendar.toString(), {
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": `max-age=${MAX_AGE}`,
+    },
+  });
 };
