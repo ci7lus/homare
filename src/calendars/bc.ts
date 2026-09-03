@@ -1,7 +1,13 @@
-import { datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
-// @deno-types="https://cdn.jsdelivr.net/npm/ics@2.40.0/index.d.ts"
-import ics from "https://cdn.skypack.dev/ics@2.40.0";
-import { dateToArr } from "./dateutils.ts";
+import ical from "npm:ical-generator@7.0.0";
+import { getVtimezoneComponent } from "npm:@touch4it/ical-timezones@1.9.0";
+import dayjs from "npm:dayjs@1.11.10";
+import timezone from "npm:dayjs@1.11.10/plugin/timezone.js";
+import utc from "npm:dayjs@1.11.10/plugin/utc.js";
+import customParseFormat from "npm:dayjs@1.11.10/plugin/customParseFormat.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 const SOURCE_URL =
   "https://github.com/ci7lus/homare/blob/master/src/calendars/bc.ts";
@@ -30,38 +36,37 @@ export const handleBandaiChannel = async () => {
     program_title: string;
   }[] = await response.json();
 
-  const { value, error } = ics.createEvents(
-    schedules.map((schedule) => {
-      const startAt = datetime(schedule.program_begin_date, {
-        timezone: "Asia/Tokyo",
-      }).toZonedTime("UTC");
-      const endAt = datetime(schedule.program_end_date, {
-        timezone: "Asia/Tokyo",
-      }).toZonedTime("UTC");
-      const url = `https://live.b-ch.com/${schedule.alias}`;
-      return {
-        uid: schedule.alias,
-        start: dateToArr(startAt),
-        startInputType: "utc",
-        startOutputType: "utc",
-        end: dateToArr(endAt),
-        endInputType: "utc",
-        endOutputType: "utc",
-        title: schedule.program_title,
-        url,
-        description: url,
-        productId: "homare/calendars/bc",
-      };
-    })
-  );
+  const calendar = ical({ name: "Bandai Channel" });
+  calendar.timezone({
+    name: "Asia/Tokyo",
+    generator: getVtimezoneComponent,
+  });
 
-  if (error) {
-    console.error(error);
-    return new Response("ical generation error", {
-      status: 500,
+  for (const schedule of schedules) {
+    const startAt = dayjs.tz(
+      schedule.program_begin_date,
+      "YYYY/MM/DD HH:mm:ss",
+      "Asia/Tokyo"
+    );
+    const endAt = dayjs.tz(
+      schedule.program_end_date,
+      "YYYY/MM/DD HH:mm:ss",
+      "Asia/Tokyo"
+    );
+    const url = `https://live.b-ch.com/${schedule.alias}`;
+
+    calendar.createEvent({
+      id: schedule.alias,
+      start: startAt.toDate(),
+      end: endAt.toDate(),
+      summary: schedule.program_title,
+      url,
+      description: url,
+      timezone: "Asia/Tokyo",
     });
   }
-  return new Response(value, {
+
+  return new Response(calendar.toString(), {
     headers: {
       "content-type": "text/plain; charset=utf-8",
       "cache-control": `public, max-age=${MAX_AGE}`,

@@ -1,15 +1,22 @@
-import { datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
 import ical from "npm:ical-generator@7.0.0";
 import { getVtimezoneComponent } from "npm:@touch4it/ical-timezones@1.9.0";
 import { unescapeHtml } from "https://deno.land/x/escape@1.4.2/mod.ts";
+import dayjs from "npm:dayjs@1.11.10";
+import timezone from "npm:dayjs@1.11.10/plugin/timezone.js";
+import utc from "npm:dayjs@1.11.10/plugin/utc.js";
+import customParseFormat from "npm:dayjs@1.11.10/plugin/customParseFormat.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 const MAX_AGE = 60 * 60;
 const API_TOKEN = "FGXySj3mTd";
 
 export const handleStreamingPlus = async () => {
-  const now = datetime();
-  const startFrom = now.format("YYYYMMdd");
-  const startTo = now.add({ day: 8 }).format("YYYYMMdd");
+  const now = dayjs().tz("Asia/Tokyo");
+  const startFrom = now.format("YYYYMMDD");
+  const startTo = now.add(8, "day").format("YYYYMMDD");
   const response = await fetch(
     `https://api.eplus.jp/v3/koen?streaming_haishin_kubun_list=1&child_koen_jogai_flag=1&koenbi_start_from=${startFrom}&koenbi_start_to=${startTo}&kanren_tour_shutoku_flag=1&sort_key=koenbi%2Ckaien_time%2Ckogyo_code%2Ckogyo_sub_code&shutoku_start_ichi=1&shutoku_kensu=100`,
     {
@@ -60,17 +67,15 @@ export const handleStreamingPlus = async () => {
       return;
     }
     const [, year, month, day, hour, minute] = match;
-    const startAt = datetime({
-      year: Number(year),
-      month: Number(month),
-      day: Number(day),
-      hour: Number(hour),
-      minute: Number(minute),
-    });
+    const dateStr = `${year}-${month.padStart(2, "0")}-${day.padStart(
+      2,
+      "0"
+    )} ${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+    const startAt = dayjs.tz(dateStr, "YYYY-MM-DD HH:mm", "Asia/Tokyo");
     calendar.createEvent({
       id: event.koen_detail_url_pc,
-      start: startAt.toJSDate(),
-      end: startAt.add({ hour: 1 }).toJSDate(),
+      start: startAt.toDate(),
+      end: startAt.add(1, "hour").toDate(),
       summary: unescapeHtml(
         [
           event.kanren_kogyo_sub?.kogyo_name_1,

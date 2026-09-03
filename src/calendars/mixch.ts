@@ -1,8 +1,7 @@
-import ics from "https://cdn.skypack.dev/ics@v2.35.0";
-import { datetime } from "https://deno.land/x/ptera@v1.0.2/mod.ts";
-import { dateToArr } from "./dateutils.ts";
+import ical from "npm:ical-generator@7.0.0";
+import { getVtimezoneComponent } from "npm:@touch4it/ical-timezones@1.9.0";
+import dayjs from "npm:dayjs@1.11.10";
 
-const _ = "https://github.com/ci7lus/homare/blob/master/src/mixch.ts";
 const MAX_AGE = 60 * 60;
 
 export const handleMixch = async () => {
@@ -33,38 +32,34 @@ export const handleMixch = async () => {
     }[];
   } = await response.json();
 
-  const { error, value } = ics.createEvents(
-    json.liveviews.map((live) => {
-      const url = `https://mixch.tv/liveview/${live.id}/detail`;
-      const startAt = datetime(live.liveOpenUnixTime * 1000, {
-        timezone: "UTC",
-      });
+  const calendar = ical({ name: "Mixch" });
+  calendar.timezone({
+    name: "Asia/Tokyo",
+    generator: getVtimezoneComponent,
+  });
 
-      return {
-        uid: live.id.toString(),
-        start: dateToArr(startAt.toUTC()),
-        duration: { hours: 1 },
-        title: live.name,
-        url,
-        description: `${url}\n${live.description}`,
-        productId: "mixch/ics",
-      };
-    })
-  );
-  if (error) {
-    console.error(error);
-    return new Response("ical generation error", {
-      status: 500,
+  for (const live of json.liveviews) {
+    const url = `https://mixch.tv/liveview/${live.id}/detail`;
+    const startAt = dayjs.unix(live.liveOpenUnixTime);
+    const endAt = live.liveCloseUnixTime
+      ? dayjs.unix(live.liveCloseUnixTime)
+      : startAt.add(1, "hour");
+
+    calendar.createEvent({
+      id: live.id.toString(),
+      start: startAt.toDate(),
+      end: endAt.toDate(),
+      summary: live.name,
+      url,
+      description: `${url}\n${live.description}`,
+      timezone: "Asia/Tokyo",
     });
   }
 
-  return new Response(
-    value?.replace("METHOD:PUBLISH", "METHOD:PUBLISH\nTZID:Asia/Tokyo"),
-    {
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": `max-age=${MAX_AGE}`,
-      },
-    }
-  );
+  return new Response(calendar.toString(), {
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": `max-age=${MAX_AGE}`,
+    },
+  });
 };
