@@ -76,8 +76,8 @@ export const handlePia = async () => {
 
     calendar.createEvent({
       id: live.bndlCd,
-      start: startAt.toDate(),
-      end: endAt.toDate(),
+      start: startAt,
+      end: endAt,
       summary: live.bndlTtlNm,
       url,
       description: `${url}\n${live.bndlShortCatch || ""}\n${live.lgenreCd}`,
