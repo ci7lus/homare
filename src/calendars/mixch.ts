@@ -1,6 +1,11 @@
 import ical from "npm:ical-generator@7.0.0";
 import { getVtimezoneComponent } from "npm:@touch4it/ical-timezones@1.9.0";
 import dayjs from "npm:dayjs@1.11.10";
+import timezone from "npm:dayjs@1.11.10/plugin/timezone.js";
+import utc from "npm:dayjs@1.11.10/plugin/utc.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const MAX_AGE = 60 * 60;
 
@@ -40,15 +45,15 @@ export const handleMixch = async () => {
 
   for (const live of json.liveviews) {
     const url = `https://mixch.tv/liveview/${live.id}/detail`;
-    const startAt = dayjs.unix(live.liveOpenUnixTime);
+    const startAt = dayjs.unix(live.liveOpenUnixTime).tz("Asia/Tokyo");
     const endAt = live.liveCloseUnixTime
-      ? dayjs.unix(live.liveCloseUnixTime)
+      ? dayjs.unix(live.liveCloseUnixTime).tz("Asia/Tokyo")
       : startAt.add(1, "hour");
 
     calendar.createEvent({
       id: live.id.toString(),
-      start: startAt.toDate(),
-      end: endAt.toDate(),
+      start: startAt,
+      end: endAt,
       summary: live.name,
       url,
       description: `${url}\n${live.description}`,

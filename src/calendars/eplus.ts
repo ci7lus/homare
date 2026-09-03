@@ -74,8 +74,8 @@ export const handleStreamingPlus = async () => {
     const startAt = dayjs.tz(dateStr, "YYYY-MM-DD HH:mm", "Asia/Tokyo");
     calendar.createEvent({
       id: event.koen_detail_url_pc,
-      start: startAt.toDate(),
-      end: startAt.add(1, "hour").toDate(),
+      start: startAt,
+      end: startAt.add(1, "hour"),
       summary: unescapeHtml(
         [
           event.kanren_kogyo_sub?.kogyo_name_1,

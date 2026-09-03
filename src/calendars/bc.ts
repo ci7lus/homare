@@ -57,8 +57,8 @@ export const handleBandaiChannel = async () => {
 
     calendar.createEvent({
       id: schedule.alias,
-      start: startAt.toDate(),
-      end: endAt.toDate(),
+      start: startAt,
+      end: endAt,
       summary: schedule.program_title,
       url,
       description: url,
